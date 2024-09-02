@@ -16,25 +16,19 @@ jobs:
       with:
         terraform_version: 1.5.0 # Specify the Terraform version you need
 
-    - name: Terraform Init
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+    - name: Create terraform.tfvars
       run: |
-        # Create terraform.tfvars file from secrets
         echo "client_id = \"${{ secrets.ARM_CLIENT_ID }}\"" > terraform.tfvars
         echo "client_secret = \"${{ secrets.ARM_CLIENT_SECRET }}\"" >> terraform.tfvars
         echo "subscription_id = \"${{ secrets.ARM_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
         echo "tenant_id = \"${{ secrets.ARM_TENANT_ID }}\"" >> terraform.tfvars
-        terraform init
+
+    - name: Terraform Init
+      run: terraform init
 
     - name: Terraform Plan
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      run: terraform plan -out=tfplan
+      run: terraform plan -var-file=terraform.tfvars -out=tfplan
 
+    - name: Terraform Apply
+      if: github.event.inputs.run_apply == 'true'
+      run: terraform apply -var-file=terraform.tfvars tfplan
