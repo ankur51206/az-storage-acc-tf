@@ -22,11 +22,16 @@ jobs:
         echo "client_secret = \"${{ secrets.ARM_CLIENT_SECRET }}\"" >> terraform.tfvars
         echo "subscription_id = \"${{ secrets.ARM_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
         echo "tenant_id = \"${{ secrets.ARM_TENANT_ID }}\"" >> terraform.tfvars
-        ls -la
         cat terraform.tfvars
 
     - name: Terraform Init
       run: terraform init
+
+    - name: Upload terraform.tfvars
+      uses: actions/upload-artifact@v4
+      with:
+        name: terraform-tfvars
+        path: terraform.tfvars
 
   terraform-plan:
     runs-on: ubuntu-latest
@@ -40,6 +45,11 @@ jobs:
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: '1.4.0'
+
+    - name: Download terraform.tfvars
+      uses: actions/download-artifact@v4
+      with:
+        name: terraform-tfvars
 
     - name: Terraform Plan
       run: terraform plan -var-file=terraform.tfvars -out=tfplan
