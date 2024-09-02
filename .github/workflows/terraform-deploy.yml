@@ -56,7 +56,7 @@ jobs:
             -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_ENV
-        
+          ls -la
           if [ $exitcode -eq 1 ]; then
             echo "Terraform Plan Failed!"
             exit 1
