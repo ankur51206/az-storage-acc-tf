@@ -1,10 +1,12 @@
 name: Deploy Terraform
 
 on:
-  workflow_dispatch: # Allows manual triggering of the workflow
+  push:
+    branches:
+      - main
 
 jobs:
-  terraform-init:
+  terraform:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,7 +16,7 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
-        terraform_version: 'latest'
+        terraform_version: '1.4.0'
 
     - name: Create terraform.tfvars
       run: |
@@ -22,45 +24,11 @@ jobs:
         echo "client_secret = \"${{ secrets.ARM_CLIENT_SECRET }}\"" >> terraform.tfvars
         echo "subscription_id = \"${{ secrets.ARM_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
         echo "tenant_id = \"${{ secrets.ARM_TENANT_ID }}\"" >> terraform.tfvars
+        ls -la
         cat terraform.tfvars
-
+        
     - name: Terraform Init
       run: terraform init
-
-    - name: Upload terraform.tfvars
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-tfvars
-        path: terraform.tfvars
-
-    - name: Upload Terraform Lock File
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-lock
-        path: .terraform.lock.hcl
-
-  terraform-plan:
-    runs-on: ubuntu-latest
-    needs: terraform-init # Ensures this job runs only after terraform-init completes
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 'latest'
-
-    - name: Download terraform.tfvars
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-tfvars
-
-    - name: Download Terraform Lock File
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-lock
 
     - name: Terraform Plan
       run: terraform plan -var-file=terraform.tfvars -out=tfplan
@@ -70,34 +38,3 @@ jobs:
       with:
         name: tfplan
         path: tfplan
-
-  terraform-apply:
-    runs-on: ubuntu-latest
-    needs: terraform-plan # Ensures this job runs only after terraform-plan completes
-
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 'latest'
-
-    - name: Download terraform.tfvars
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-tfvars
-
-    - name: Download Terraform Plan
-      uses: actions/download-artifact@v4
-      with:
-        name: tfplan
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve tfplan
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
