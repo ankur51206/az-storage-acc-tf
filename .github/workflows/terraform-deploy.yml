@@ -16,14 +16,6 @@ jobs:
       with:
         terraform_version: '1.4.0'
 
-
-    - name: Setup Azure Credentials
-      run: |
-        echo "AZURE_CLIENT_ID=${{ secrets.ARM_CLIENT_ID }}" >> $GITHUB_ENV
-        echo "AZURE_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}" >> $GITHUB_ENV
-        echo "AZURE_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-        echo "AZURE_TENANT_ID=${{ secrets.ARM_TENANT_ID }}" >> $GITHUB_ENV
-
     - name: Create terraform.tfvars
       run: |
         echo "client_id = \"${{ secrets.ARM_CLIENT_ID }}\"" > terraform.tfvars
@@ -38,12 +30,22 @@ jobs:
         echo "## Initializing Terraform"
         terraform init
         echo "## Terraform Initialized"
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
     - name: Plan Terraform Changes
       run: |
         echo "## Planning Terraform Changes"
         terraform plan -var-file=terraform.tfvars -out=tfplan
         echo "## Terraform Plan Completed"
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
     - name: Apply Terraform Changes
       run: |
