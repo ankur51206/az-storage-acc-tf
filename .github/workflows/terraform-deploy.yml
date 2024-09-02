@@ -25,15 +25,6 @@ jobs:
         ls -la
         cat terraform.tfvars
 
-    - name: Export Azure Credentials
-      run: |
-        echo "## Setting up Azure credentials"
-        export ARM_CLIENT_ID=${{ secrets.ARM_CLIENT_ID }}
-        export ARM_CLIENT_SECRET=${{ secrets.ARM_CLIENT_SECRET }}
-        export ARM_SUBSCRIPTION_ID=${{ secrets.ARM_SUBSCRIPTION_ID }}
-        export ARM_TENANT_ID=${{ secrets.ARM_TENANT_ID }}
-
-
     - name: Initialize Terraform
       run: |
         echo "## Initializing Terraform"
