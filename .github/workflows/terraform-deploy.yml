@@ -40,25 +40,14 @@ jobs:
       - name: Terraform Plan
         id: tf-plan
         run: |
-          export exitcode=0
           terraform plan -detailed-exitcode -no-color \
             -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" \
             -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
             -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -out tfplan || export exitcode=$?
+            -out tfplan
+          echo "exitcode=$?" >> $GITHUB_ENV
 
-          echo "exitcode=$exitcode" >> $GITHUB_ENV
-        
-          if [ $exitcode -eq 1 ]; then
-            echo "Terraform Plan Failed!"
-            exit 1
-          elif [ $exitcode -eq 2 ]; then
-            echo "Terraform Plan has changes."
-          else
-            echo "No changes detected."
-          fi
-        
       - name: Publish Terraform Plan
         uses: actions/upload-artifact@v4
         with:
@@ -69,7 +58,6 @@ jobs:
         id: tf-plan-string
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
-          
           delimiter="$(openssl rand -hex 8)"
           echo "summary<<${delimiter}" >> $GITHUB_ENV
           echo "## Terraform Plan Output" >> $GITHUB_ENV
@@ -80,7 +68,7 @@ jobs:
           echo '```' >> $GITHUB_ENV
           echo "</details>" >> $GITHUB_ENV
           echo "${delimiter}" >> $GITHUB_ENV
-        
+
       - name: Publish Terraform Plan to Task Summary
         run: |
           echo "${{ env.summary }}" >> $GITHUB_STEP_SUMMARY
@@ -101,7 +89,7 @@ jobs:
 
   terraform-apply:
     name: 'Terraform Apply'
-    if: github.ref == 'refs/heads/main' && needs.terraform-plan.outputs.tfplanExitCode == '2'
+    if: github.ref == 'refs/heads/main' && needs.terraform-plan.outputs.exitcode == '2'
     runs-on: ubuntu-latest
     environment: production
     needs: terraform-plan
