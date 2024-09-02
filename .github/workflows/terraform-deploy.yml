@@ -45,6 +45,7 @@ jobs:
           echo "client_secret = \"${{ secrets.AZURE_CLIENT_SECRET }}\"" >> terraform.tfvars
           echo "subscription_id = \"${{ secrets.AZURE_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
           echo "tenant_id = \"${{ secrets.AZURE_TENANT_ID }}\"" >> terraform.tfvars
+          ls -la
 
 
       - name: Terraform Init
