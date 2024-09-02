@@ -24,15 +24,26 @@ jobs:
         echo "tenant_id = \"${{ secrets.ARM_TENANT_ID }}\"" >> terraform.tfvars
         ls -la
         cat terraform.tfvars
-        
+
     - name: Initialize Terraform
-      run: terraform init
+      run: |
+        echo "## Initializing Terraform"
+        terraform init
+        echo "## Terraform Initialized"
 
     - name: Plan Terraform Changes
-      run: terraform plan -var-file=terraform.tfvars -out=tfplan
+      run: |
+        echo "## Planning Terraform Changes"
+        terraform plan -var-file=terraform.tfvars -out=tfplan
+        echo "## Terraform Plan Completed"
 
-    - name: Upload Terraform Plan
-      uses: actions/upload-artifact@v4
-      with:
-        name: tfplan
-        path: tfplan
+    - name: Apply Terraform Changes
+      run: |
+        echo "## Applying Terraform Changes"
+        terraform apply -auto-approve tfplan
+        echo "## Terraform Apply Completed"
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
