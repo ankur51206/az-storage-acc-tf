@@ -1,7 +1,9 @@
-name: Terraform Deploy
+name: Deploy Terraform
 
-on: 
-  workflow_dispatch: # This allows manual triggering of the workflow
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   terraform:
@@ -9,32 +11,30 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v2
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: '1.4.0'
+
+    - name: Create terraform.tfvars
+      run: |
+        echo "client_id = \"${{ secrets.ARM_CLIENT_ID }}\"" > terraform.tfvars
+        echo "client_secret = \"${{ secrets.ARM_CLIENT_SECRET }}\"" >> terraform.tfvars
+        echo "subscription_id = \"${{ secrets.ARM_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
+        echo "tenant_id = \"${{ secrets.ARM_TENANT_ID }}\"" >> terraform.tfvars
+        ls -la
+        cat terraform.tfvars
 
     - name: Terraform Init
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       run: terraform init
 
     - name: Terraform Plan
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      run: terraform plan -out=tfplan
+      run: terraform plan -var-file=terraform.tfvars -out=tfplan
 
-    - name: Terraform Apply
-      if: github.event.inputs.run_apply == 'true'
-      env:
-        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      run: terraform apply tfplan
+    - name: Upload Terraform Plan
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan
+        path: tfplan
