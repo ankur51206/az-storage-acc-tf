@@ -36,5 +36,5 @@ variable "location" {
 variable "storage_account_name" {
   description = "Name of the storage account"
   type        = string
-  default     = "samplestorageaccount"
+  default     = "samplestorageaccountankur-test"
 }
