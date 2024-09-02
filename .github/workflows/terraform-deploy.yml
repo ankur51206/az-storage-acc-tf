@@ -1,7 +1,7 @@
 name: Terraform Deploy
 
-on: 
-  workflow_dispatch: # This allows manual triggering of the workflow
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
 
 jobs:
   terraform:
@@ -13,6 +13,8 @@ jobs:
 
     - name: Set up Terraform
       uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.5.0 # Specify the Terraform version you need
 
     - name: Terraform Init
       env:
@@ -20,7 +22,13 @@ jobs:
         ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      run: terraform init
+      run: |
+        # Create terraform.tfvars file from secrets
+        echo "client_id = \"${{ secrets.ARM_CLIENT_ID }}\"" > terraform.tfvars
+        echo "client_secret = \"${{ secrets.ARM_CLIENT_SECRET }}\"" >> terraform.tfvars
+        echo "subscription_id = \"${{ secrets.ARM_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
+        echo "tenant_id = \"${{ secrets.ARM_TENANT_ID }}\"" >> terraform.tfvars
+        terraform init
 
     - name: Terraform Plan
       env:
@@ -29,3 +37,4 @@ jobs:
         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       run: terraform plan -out=tfplan
+
