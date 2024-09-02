@@ -38,6 +38,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
+          
+      - name: Create terraform.tfvars
+        run: |
+          echo "client_id = \"${{ secrets.AZURE_CLIENT_ID }}\"" > terraform.tfvars
+          echo "client_secret = \"${{ secrets.AZURE_CLIENT_SECRET }}\"" >> terraform.tfvars
+          echo "subscription_id = \"${{ secrets.AZURE_SUBSCRIPTION_ID }}\"" >> terraform.tfvars
+          echo "tenant_id = \"${{ secrets.AZURE_TENANT_ID }}\"" >> terraform.tfvars
+
 
       - name: Terraform Init
         run: terraform init
@@ -49,12 +57,7 @@ jobs:
         id: tf-plan
         run: |
           export exitcode=0
-          terraform plan -detailed-exitcode -no-color \
-            -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" \
-            -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
-            -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -out tfplan || export exitcode=$?
+          terraform plan -detailed-exitcode -no-color -out=tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_ENV
           ls -la
