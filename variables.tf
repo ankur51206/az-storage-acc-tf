@@ -1,9 +1,7 @@
 # variables.tf
-
 variable "client_id" {
   description = "Azure Service Principal Client ID"
   type        = string
-  sensitive   = true
 }
 
 variable "client_secret" {
